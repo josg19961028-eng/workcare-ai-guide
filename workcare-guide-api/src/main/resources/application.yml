@@ -1,0 +1,46 @@
+# Spring Boot 애플리케이션의 공통 설정이다.
+# local, test, prod 등 모든 실행환경에 공통으로 적용된다.
+
+spring:
+    application:
+        # 로그, 모니터링 및 내부 설정에서 사용하는 애플리케이션 식별 이름이다.
+        name: workcare-guide-api
+
+    profiles:
+        # 활성 프로필을 지정하지 않으면 local 환경을 기본으로 사용한다.
+        # 운영환경에서는 SPRING_PROFILES_ACTIVE=prod로 변경할 예정이다.
+        default: local
+
+# server는 spring과 동일한 최상위 단계에 있어야 한다.
+server:
+    # SERVER_PORT 환경변수가 없으면 8080 포트를 사용한다.
+    port: ${SERVER_PORT:8080}
+
+    # 종료할 때 처리 중인 HTTP 요청이 끝날 시간을 준다.
+    shutdown: graceful
+
+    servlet:
+        encoding:
+            # HTTP 요청과 응답에 UTF-8을 적용한다.
+            charset: UTF-8
+            enabled: true
+            force: true
+
+    error:
+        # 클라이언트 응답에 Java Stack Trace를 포함하지 않는다.
+        include-stacktrace: never
+
+        # 내부 예외 메시지를 그대로 노출하지 않는다.
+        include-message: never
+
+        # 입력값 바인딩 오류의 내부 상세 정보를 노출하지 않는다.
+        include-binding-errors: never
+
+        # 발생한 Java 예외 클래스명을 응답에 포함하지 않는다.
+        include-exception: false
+
+logging:
+    level:
+        # 처리된 예외의 전체 메시지에 판결문이 포함되는 것을 방지한다.
+        # 우리 GlobalApiExceptionHandler의 안전한 오류 로그는 그대로 유지된다.
+        org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR

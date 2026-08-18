@@ -1,0 +1,1092 @@
+/*
+ * 프로젝트 전체에서 재사용할 색상과 크기를 변수로 관리한다.
+ *
+ * 색상을 여러 곳에 직접 작성하는 것보다 변수를 사용하면
+ * 디자인을 변경할 때 한곳만 수정할 수 있다.
+ */
+:root {
+  --color-primary: #164194;
+  --color-primary-dark: #0c2c68;
+  --color-primary-light: #eaf1ff;
+  --color-accent: #00a87e;
+  --color-text: #172033;
+  --color-text-muted: #637083;
+  --color-border: #dce3ec;
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-footer: #111b2d;
+  --shadow-card: 0 16px 36px rgba(23, 32, 51, 0.08);
+  --page-width: 1180px;
+
+  /*
+   * 운영체제에 설치된 기본 한글 글꼴을 우선 사용한다.
+   * 외부 폰트를 불러오지 않아 초기 로딩과 개인정보 전송을 줄인다.
+   */
+  font-family:
+    Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Noto Sans KR', 'Segoe UI', sans-serif;
+  color: var(--color-text);
+  background: var(--color-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* 모든 요소의 크기 계산에 padding과 border를 포함한다. */
+* {
+  box-sizing: border-box;
+}
+
+/* 페이지의 기본 여백을 제거한다. */
+html {
+  margin: 0;
+  scroll-behavior: smooth;
+}
+
+/* 브라우저의 기본 body 여백을 제거하고 배경색을 지정한다. */
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--color-background);
+}
+
+/* 버튼과 입력 요소가 본문과 동일한 글꼴을 사용하게 한다. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* 링크가 부모 요소의 색상을 기본적으로 따르게 한다. */
+a {
+  color: inherit;
+}
+
+/* Vue가 화면을 연결하는 최상위 요소의 최소 높이다. */
+#app {
+  min-height: 100vh;
+}
+
+/* Header, Main, Footer가 세로 전체를 채우게 한다. */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/*
+ * 키보드 접근성용 본문 바로가기 링크다.
+ * 평소에는 화면 밖에 숨기고 포커스를 받으면 표시한다.
+ */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  z-index: 1000;
+  padding: 12px 18px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--color-primary-dark);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* 여러 화면에서 사용할 공통 콘텐츠 최대 너비다. */
+.page-container {
+  width: min(calc(100% - 40px), var(--page-width));
+  margin: 0 auto;
+}
+
+/* 상단 메뉴 영역이다. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(220, 227, 236, 0.9);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.site-header__inner {
+  display: flex;
+  width: min(calc(100% - 40px), var(--page-width));
+  min-height: 76px;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+/* 서비스명과 아이콘을 묶는 영역이다. */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand__mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), #2c6bd7);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand__text strong {
+  font-size: 18px;
+}
+
+.brand__text small {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* 상단 메뉴 배치다. */
+.main-navigation {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.main-navigation a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.main-navigation__pending {
+  color: #9099a8;
+}
+
+/* 내용이 적어도 Footer가 화면 아래에 위치하도록 한다. */
+.site-main {
+  flex: 1;
+}
+
+/* 메인 대표 영역이다. */
+.hero-section {
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+  background:
+    radial-gradient(circle at 86% 20%, rgba(51, 108, 217, 0.2), transparent 28%),
+    linear-gradient(135deg, #f6f9ff 0%, #ffffff 58%, #edf8f5 100%);
+}
+
+.hero-section__inner {
+  display: grid;
+  min-height: 560px;
+  padding-top: 88px;
+  padding-bottom: 88px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(330px, 0.8fr);
+  align-items: center;
+  gap: 72px;
+}
+
+.eyebrow {
+  margin: 0 0 16px;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.hero-section h1 {
+  margin: 0;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.13;
+  letter-spacing: -0.045em;
+}
+
+.hero-section h1 span {
+  display: block;
+  color: var(--color-primary);
+}
+
+.hero-section__description {
+  max-width: 650px;
+  margin: 28px 0 0;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.hero-section__actions {
+  display: flex;
+  margin-top: 36px;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.primary-button {
+  display: inline-flex;
+  min-height: 52px;
+  padding: 0 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: #ffffff;
+  background: var(--color-primary);
+  box-shadow: 0 10px 24px rgba(22, 65, 148, 0.22);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primary-button:hover {
+  background: var(--color-primary-dark);
+}
+
+.primary-button:focus-visible,
+.brand:focus-visible,
+.main-navigation a:focus-visible {
+  outline: 3px solid rgba(22, 65, 148, 0.35);
+  outline-offset: 4px;
+}
+
+.data-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #276452;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.data-status__indicator {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 5px rgba(0, 168, 126, 0.12);
+}
+
+/* 메인 화면 오른쪽의 처리 흐름 카드다. */
+.hero-summary {
+  padding: 30px;
+  border: 1px solid rgba(220, 227, 236, 0.9);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-card);
+}
+
+.hero-summary__label {
+  margin: 0 0 24px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.process-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 12px;
+  list-style: none;
+}
+
+.process-list li {
+  display: flex;
+  padding: 18px;
+  align-items: flex-start;
+  gap: 14px;
+  border-radius: 14px;
+  background: #f7f9fc;
+}
+
+.process-list li > span {
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.process-list strong {
+  font-size: 15px;
+}
+
+.process-list p {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* 주요 서비스 소개 영역이다. */
+.service-section {
+  padding: 96px 0;
+  background: var(--color-surface);
+}
+
+.section-heading {
+  margin-bottom: 38px;
+}
+
+.section-heading h2,
+.architecture-section h2 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -0.035em;
+}
+
+.section-heading > p:last-child {
+  margin: 14px 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.service-card {
+  min-height: 300px;
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.service-card--active {
+  border-color: rgba(22, 65, 148, 0.32);
+  box-shadow: var(--shadow-card);
+}
+
+.service-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.service-card__number {
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.status-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #687386;
+  background: #edf0f4;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.status-badge--ready {
+  color: #19614d;
+  background: #e5f8f2;
+}
+
+.service-card h3 {
+  margin: 38px 0 14px;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+}
+
+.service-card > p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.service-card__action {
+  margin-top: 30px;
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.service-card__action--disabled {
+  color: #969eaa;
+}
+
+/* 기술 구조를 간단히 보여주는 영역이다. */
+.architecture-section {
+  padding: 72px 0;
+  color: #ffffff;
+  background: var(--color-primary-dark);
+}
+
+.architecture-section .eyebrow {
+  color: #9cc0ff;
+}
+
+.architecture-section__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.architecture-flow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.architecture-flow span {
+  padding: 13px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* 하단 프로젝트 안내 영역이다. */
+.site-footer {
+  padding: 42px 0;
+  color: #d7deeb;
+  background: var(--color-footer);
+}
+
+.site-footer__inner {
+  width: min(calc(100% - 40px), var(--page-width));
+  margin: 0 auto;
+}
+
+.site-footer p {
+  margin: 10px 0 0;
+  color: #9faabd;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.site-footer__copyright {
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 태블릿과 작은 노트북 화면에 적용한다. */
+@media (max-width: 900px) {
+  .hero-section__inner {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+
+  .service-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .architecture-section__inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* 모바일 화면에 적용한다. */
+@media (max-width: 640px) {
+  .site-header__inner {
+    min-height: 68px;
+  }
+
+  .brand__text small,
+  .main-navigation__pending {
+    display: none;
+  }
+
+  .main-navigation {
+    gap: 16px;
+    font-size: 14px;
+  }
+
+  .hero-section__inner {
+    min-height: auto;
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .hero-section h1 {
+    font-size: 38px;
+  }
+
+  .hero-section__description {
+    font-size: 16px;
+  }
+
+  .service-section {
+    padding: 70px 0;
+  }
+
+  .architecture-flow strong {
+    display: none;
+  }
+}
+
+/*
+ * 하위 페이지의 제목을 표시하는 영역이다.
+ */
+.subpage-heading {
+  padding: 72px 0;
+  border-bottom: 1px solid var(--color-border);
+  background:
+    radial-gradient(
+      circle at 82% 10%,
+      rgba(22, 65, 148, 0.14),
+      transparent 25%
+    ),
+    var(--color-surface);
+}
+
+.subpage-heading h1 {
+  margin: 0;
+  font-size: clamp(36px, 5vw, 52px);
+  letter-spacing: -0.04em;
+}
+
+.subpage-heading > .page-container > p:last-child {
+  max-width: 720px;
+  margin: 20px 0 0;
+  color: var(--color-text-muted);
+  font-size: 17px;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+/*
+ * 재활기관 조회 결과를 표시할 본문 영역이다.
+ */
+.institution-section {
+  min-height: 520px;
+  padding: 72px 0 96px;
+}
+
+.institution-section__header {
+  display: flex;
+  margin-bottom: 28px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.institution-section__header h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.institution-section__header p {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+/*
+ * API 연결 전 화면에 표시할 안내 상자다.
+ */
+.institution-placeholder {
+  display: flex;
+  min-height: 330px;
+  padding: 48px 24px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px dashed #b8c5d8;
+  border-radius: 18px;
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.institution-placeholder__icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 18px;
+  color: #ffffff;
+  background: var(--color-primary);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.institution-placeholder h3 {
+  margin: 24px 0 0;
+  font-size: 21px;
+}
+
+.institution-placeholder p {
+  max-width: 580px;
+  margin: 12px 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+.institution-placeholder code {
+  margin-top: 22px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--color-primary-dark);
+  background: var(--color-primary-light);
+  font-size: 13px;
+}
+
+/*
+ * 메인 서비스 카드 안에서 사용하는 화면 이동 링크다.
+ */
+.service-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.service-card__link:hover {
+  text-decoration: underline;
+}
+
+.service-card__link:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid rgba(22, 65, 148, 0.3);
+  outline-offset: 4px;
+}
+
+/* 모바일 화면에서 제목과 상태 표시를 세로로 배치한다. */
+@media (max-width: 640px) {
+  .subpage-heading {
+    padding: 56px 0;
+  }
+
+  .institution-section {
+    padding: 54px 0 72px;
+  }
+
+  .institution-section__header {
+    flex-direction: column;
+  }
+
+  .institution-placeholder code {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+/*
+ * 전체 조회 건수를 표시하는 요소다.
+ */
+.result-count {
+  display: inline-flex;
+  min-height: 36px;
+  padding: 0 14px;
+  align-items: center;
+  border-radius: 999px;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/*
+ * 로딩, 오류, 빈 결과처럼 목록 대신 표시할 공통 상태 영역이다.
+ */
+.state-panel {
+  display: flex;
+  min-height: 330px;
+  padding: 48px 24px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.state-panel--error {
+  border-color: #f0c6c6;
+  background: #fffafa;
+}
+
+.state-panel__symbol {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #cb4343;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.state-panel h3 {
+  margin: 22px 0 0;
+  font-size: 21px;
+}
+
+.state-panel p {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+/*
+ * API 요청 중임을 나타내는 회전 애니메이션이다.
+ */
+.loading-spinner {
+  width: 46px;
+  height: 46px;
+  border: 5px solid #dfe8f6;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: loading-spin 0.85s linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * 오류 발생 후 재요청할 때 사용하는 버튼이다.
+ */
+.secondary-button {
+  min-height: 44px;
+  margin-top: 22px;
+  padding: 0 20px;
+  border: 1px solid var(--color-primary);
+  border-radius: 9px;
+  color: var(--color-primary);
+  background: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+.secondary-button:focus-visible {
+  outline: 3px solid rgba(22, 65, 148, 0.3);
+  outline-offset: 4px;
+}
+
+/*
+ * 기관 카드 목록이다.
+ */
+.institution-grid {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  list-style: none;
+}
+
+/*
+ * 재활기관 한 건을 표시하는 카드다.
+ */
+.institution-card {
+  min-width: 0;
+}
+
+.institution-card article {
+  display: flex;
+  min-height: 100%;
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  flex-direction: column;
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgba(23, 32, 51, 0.05);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.institution-card article:hover {
+  border-color: rgba(22, 65, 148, 0.35);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-3px);
+}
+
+.institution-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+/*
+ * 기관 유형과 관리 지사를 구분해서 표시한다.
+ */
+.institution-type {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #19614d;
+  background: #e5f8f2;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.managing-branch {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.institution-card h3 {
+  margin: 28px 0 0;
+  font-size: 23px;
+  letter-spacing: -0.025em;
+  word-break: keep-all;
+}
+
+/*
+ * 주소와 연락처 정보 목록이다.
+ */
+.institution-details {
+  display: grid;
+  margin: 24px 0 0;
+  gap: 14px;
+}
+
+.institution-details > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.institution-details dt {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.institution-details dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * 기관 홈페이지 외부 링크다.
+ */
+.institution-website {
+  display: inline-flex;
+  margin-top: auto;
+  padding-top: 26px;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.institution-website:hover {
+  text-decoration: underline;
+}
+
+.institution-website:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid rgba(22, 65, 148, 0.3);
+  outline-offset: 4px;
+}
+
+.institution-website--disabled {
+  color: #949daa;
+}
+
+/* 태블릿 이하에서는 기관 카드를 한 줄에 하나씩 표시한다. */
+@media (max-width: 760px) {
+  .institution-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/*
+ * 기관 목록의 이전·다음 페이지 이동 영역이다.
+ */
+.pagination {
+  display: flex;
+  margin-top: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+/*
+ * 이전·다음 페이지 버튼이다.
+ */
+.pagination__button {
+  min-width: 88px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--color-primary);
+  border-radius: 9px;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 사용할 수 있는 페이지 버튼에 마우스를 올렸을 때다. */
+.pagination__button:not(:disabled):hover {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+/*
+ * 첫 페이지의 이전 버튼 또는 마지막 페이지의 다음 버튼처럼
+ * 사용할 수 없는 버튼 상태다.
+ */
+.pagination__button:disabled {
+  border-color: #d7dde6;
+  color: #9ba4b1;
+  background: #f0f2f5;
+  cursor: not-allowed;
+}
+
+/* 키보드로 페이지 버튼을 선택했을 때 포커스를 표시한다. */
+.pagination__button:focus-visible {
+  outline: 3px solid rgba(22, 65, 148, 0.3);
+  outline-offset: 4px;
+}
+
+/* 현재 페이지와 전체 페이지 수를 표시한다. */
+.pagination__status {
+  min-width: 150px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* 좁은 모바일 화면에서도 페이지 버튼이 화면을 벗어나지 않게 한다. */
+@media (max-width: 480px) {
+  .pagination {
+    gap: 10px;
+  }
+
+  .pagination__button {
+    min-width: 72px;
+    padding: 0 12px;
+  }
+
+  .pagination__status {
+    min-width: auto;
+    font-size: 13px;
+  }
+}
+
+/*
+ * 의료기관과 약국 조회 유형을 선택하는 탭 영역이다.
+ */
+.lookup-tabs {
+  display: inline-flex;
+  margin-bottom: 34px;
+  padding: 5px;
+  gap: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #edf1f6;
+}
+
+/* 조회 유형 탭 버튼이다. */
+.lookup-tabs__button {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 현재 선택된 탭이다. */
+.lookup-tabs__button--active {
+  color: #ffffff;
+  background: var(--color-primary);
+  box-shadow: 0 5px 14px rgba(22, 65, 148, 0.2);
+}
+
+/* 선택하지 않은 탭에 마우스를 올렸을 때다. */
+.lookup-tabs__button:not(
+    .lookup-tabs__button--active
+  ):not(:disabled):hover {
+  color: var(--color-primary);
+  background: #ffffff;
+}
+
+/* API 조회 중에는 탭 변경을 막는다. */
+.lookup-tabs__button:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+/* 키보드 포커스를 명확히 표시한다. */
+.lookup-tabs__button:focus-visible {
+  outline: 3px solid rgba(22, 65, 148, 0.35);
+  outline-offset: 3px;
+}
+
+/*
+ * 모바일에서는 세 탭이 같은 너비를 사용한다.
+ */
+@media (max-width: 640px) {
+  .lookup-tabs {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lookup-tabs__button {
+    min-width: 0;
+    min-height: 54px;
+    padding: 6px 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    word-break: keep-all;
+  }
+}
+
+/*
+ * 메뉴가 네 개로 늘어났으므로 모바일에서는 헤더를 두 줄로 배치한다.
+ */
+@media (max-width: 760px) {
+  .site-header__inner {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /*
+   * 작은 화면에서 메뉴가 잘리면 가로로 이동할 수 있게 한다.
+   */
+  .main-navigation {
+    padding-bottom: 4px;
+    overflow-x: auto;
+    gap: 18px;
+    white-space: nowrap;
+  }
+}

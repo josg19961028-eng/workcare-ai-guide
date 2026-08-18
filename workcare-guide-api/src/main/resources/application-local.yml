@@ -1,0 +1,63 @@
+# 개발자 PC에서 실행하는 local 환경 전용 설정이다.
+# 개발자 PC에서 실행하는 local 환경 전용 설정이다.
+
+spring:
+  datasource:
+    # Oracle Thin JDBC 방식으로 FREEPDB1 서비스에 접속한다.
+    # 다른 환경에서는 환경변수로 전체 URL을 교체할 수 있다.
+    url: ${WORKCARE_DB_URL:jdbc:oracle:thin:@//localhost:1521/FREEPDB1}
+
+    # 소스코드에 계정명을 반복해서 작성하지 않도록 설정으로 관리한다.
+    username: ${WORKCARE_DB_USERNAME:WORKCARE_APP}
+
+    # 비밀번호는 Git에 올라가지 않도록 반드시 환경변수로 전달한다.
+    # 기본값을 두지 않아 환경변수가 없으면 애플리케이션 시작이 실패하도록 한다.
+    password: ${WORKCARE_DB_PASSWORD}
+
+    # Oracle JDBC 드라이버 클래스다.
+    driver-class-name: oracle.jdbc.OracleDriver
+
+    hikari:
+      # 로그에서 커넥션 풀을 식별하기 위한 이름이다.
+      pool-name: WorkCareHikariPool
+
+      # 개인 실습 환경에서 Oracle 연결을 과도하게 사용하지 않도록 제한한다.
+      maximum-pool-size: 5
+
+      # 사용 요청을 기다리는 최소 유휴 연결 수다.
+      minimum-idle: 1
+
+      # DB 연결을 최대 30초 동안 기다리고 실패 처리한다.
+      connection-timeout: 30000
+
+      # 연결 유효성 검사를 최대 5초 동안 수행한다.
+      validation-timeout: 5000
+
+mybatis:
+  # 앞으로 작성할 MyBatis SQL XML 파일 위치다.
+  mapper-locations: classpath:/mappers/**/*.xml
+
+  # Java 필드명과 DB 컬럼명을 자동 변환한다.
+  # 예: precedentId ↔ PRECEDENT_ID
+  configuration:
+    map-underscore-to-camel-case: true
+
+    # null 값을 Oracle에 전달할 때 사용할 JDBC 타입이다.
+    jdbc-type-for-null: "NULL"
+
+
+workcare:
+  public-data:
+    service-key: ${DATA_GO_KR_SERVICE_KEY}
+    rehabilitation-base-url: https://apis.data.go.kr/B490001/sjbJhgigwanGwanriInfoService
+    medical-base-url: https://apis.data.go.kr/B490001/sjHptMcalPstateInfoService
+    precedent-base-url: https://apis.data.go.kr/B490001/sjbPrecedentInfoService
+
+  ollama:
+    # Ollama가 현재 Mac에서 실행되는 주소다.
+    # 환경에 따라 OLLAMA_BASE_URL로 교체할 수 있다.
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    # 한국어 문장을 1024차원 벡터로 변환하는 모델이다.
+    embedding-model: ${OLLAMA_EMBEDDING_MODEL:bge-m3}
+    # Oracle VECTOR 컬럼의 차원과 반드시 같아야 한다.
+    embedding-dimension: 1024

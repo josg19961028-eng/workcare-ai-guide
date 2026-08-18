@@ -1,0 +1,28 @@
+# macOS / IDE
+.DS_Store
+.metadata/
+**/.settings/
+**/.idea/
+**/.vscode/
+
+# Java / Maven
+**/target/
+*.class
+*.log
+
+# Node / Vue
+**/node_modules/
+**/dist/
+**/.eslintcache
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+application-secret.yml
+application-secret.yaml
+
+# Temporary files
+*.tmp
+*.swp
+*~

@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="egovframework.workcare.precedent.infrastructure.persistence.PrecedentChunkMapper">
+
+	<!-- record 생성자의 매개변수 순서에 맞춰 DB 컬럼을 연결한다. -->
+	<resultMap id="precedentForEmbeddingResultMap"
+		type="egovframework.workcare.precedent.infrastructure.persistence.PrecedentForEmbedding">
+
+		<constructor>
+			<idArg column="PRECEDENT_ID" javaType="_long" />
+
+			<arg column="CASE_NUMBER" javaType="java.lang.String" />
+
+			<arg column="COURT_NAME" javaType="java.lang.String" />
+
+			<arg column="RESULT_TYPE" javaType="java.lang.String" />
+
+			<arg column="CASE_TYPE" javaType="java.lang.String" />
+
+			<arg column="ACCIDENT_DISEASE_TYPE" javaType="java.lang.String" />
+
+			<arg column="TITLE" javaType="java.lang.String" />
+
+			<arg column="CONTENT" javaType="java.lang.String" jdbcType="CLOB" />
+
+			<arg column="CONTENT_HASH" javaType="java.lang.String" />
+		</constructor>
+	</resultMap>
+
+	<!-- 벡터 유사도 검색 결과를 record 생성자에 연결한다. 기본형 long, int, double은 MyBatis에서 각각
+		_long, _int, _double 별칭을 사용한다. -->
+	<resultMap id="precedentVectorSearchResultMap"
+		type="egovframework.workcare.precedent.infrastructure.persistence.PrecedentVectorSearchRow">
+
+		<constructor>
+			<idArg column="PRECEDENT_ID" javaType="_long" />
+
+			<arg column="CASE_NUMBER" javaType="java.lang.String" />
+
+			<arg column="COURT_NAME" javaType="java.lang.String" />
+
+			<arg column="RESULT_TYPE" javaType="java.lang.String" />
+
+			<arg column="CASE_TYPE" javaType="java.lang.String" />
+
+			<arg column="ACCIDENT_DISEASE_TYPE" javaType="java.lang.String" />
+
+			<arg column="TITLE" javaType="java.lang.String" />
+
+			<arg column="CHUNK_NO" javaType="_int" />
+
+			<arg column="CHUNK_TEXT" javaType="java.lang.String"
+				jdbcType="CLOB" />
+
+			<arg column="DISTANCE_VALUE" javaType="_double" />
+		</constructor>
+	</resultMap>
+
+	<!-- 아직 청크가 없는 판례만 ID 순서대로 조회한다. 외부 요청 하나가 너무 많은 판결문을 임베딩하여 CPU와 메모리를 고갈시키지
+		않도록 조회 개수를 제한한다. -->
+	<select id="selectPrecedentsWithoutChunks"
+		resultMap="precedentForEmbeddingResultMap">
+
+		SELECT
+		target.PRECEDENT_ID,
+		target.CASE_NUMBER,
+		target.COURT_NAME,
+		target.RESULT_TYPE,
+		target.CASE_TYPE,
+		target.ACCIDENT_DISEASE_TYPE,
+		target.TITLE,
+		target.CONTENT,
+		target.CONTENT_HASH
+
+		FROM (
+		SELECT
+		precedent.PRECEDENT_ID,
+		precedent.CASE_NUMBER,
+		precedent.COURT_NAME,
+		precedent.RESULT_TYPE,
+		precedent.CASE_TYPE,
+		precedent.ACCIDENT_DISEASE_TYPE,
+		precedent.TITLE,
+		precedent.CONTENT,
+		precedent.CONTENT_HASH
+
+		FROM WC_PRECEDENT precedent
+
+		WHERE NOT EXISTS (
+		SELECT 1
+		FROM WC_PRECEDENT_CHUNK chunk
+		WHERE chunk.PRECEDENT_ID =
+		precedent.PRECEDENT_ID
+		)
+
+		ORDER BY precedent.PRECEDENT_ID
+		) target
+
+		WHERE ROWNUM &lt;= #{limit, jdbcType=INTEGER}
+
+	</select>
+
+	<!-- 판결문이 변경되었을 때 이전 청크와 벡터를 제거한다. -->
+	<delete id="deleteChunksByPrecedentId">
+
+		DELETE FROM WC_PRECEDENT_CHUNK
+		WHERE PRECEDENT_ID =
+		#{precedentId, jdbcType=BIGINT}
+
+	</delete>
+
+	<!-- 분할된 판결문과 임베딩 벡터 한 건을 저장한다. -->
+	<insert id="insertCompletedChunk"
+		parameterType="egovframework.workcare.precedent.infrastructure.persistence.PrecedentChunkSaveParameter">
+
+		INSERT INTO WC_PRECEDENT_CHUNK (
+		PRECEDENT_ID,
+		CHUNK_NO,
+		CHUNK_TEXT,
+		CHUNK_HASH,
+		EMBEDDING,
+		EMBEDDING_MODEL,
+		EMBEDDING_STATUS,
+		EMBEDDING_ERROR
+		)
+		VALUES (
+		#{precedentId, jdbcType=BIGINT},
+		#{chunkNo, jdbcType=INTEGER},
+		#{chunkText, jdbcType=CLOB},
+		#{chunkHash, jdbcType=VARCHAR},
+
+		/*
+		* float[]를 Oracle VECTOR(1024, FLOAT32)로
+		* 변환하는 전용 TypeHandler를 지정한다.
+		*/
+		#{embedding,
+		typeHandler=egovframework.workcare.common.mybatis.OracleFloat32VectorTypeHandler},
+
+		#{embeddingModel, jdbcType=VARCHAR},
+		'COMPLETED',
+		NULL
+		)
+
+	</insert>
+
+	<!--
+    사용자 질문 벡터와 저장된 청크 벡터 사이의
+    코사인 거리를 계산하여 가까운 판례를 조회한다.
+-->
+<select id="selectSimilarPrecedents"
+        resultMap="precedentVectorSearchResultMap">
+
+    /*
+     * 1단계: 모든 완료된 청크와 질문 벡터 사이의
+     * 코사인 거리를 계산한다.
+     */
+    WITH chunk_distance AS (
+        SELECT
+            precedent.PRECEDENT_ID,
+            precedent.CASE_NUMBER,
+            precedent.COURT_NAME,
+            precedent.RESULT_TYPE,
+            precedent.CASE_TYPE,
+            precedent.ACCIDENT_DISEASE_TYPE,
+            precedent.TITLE,
+            chunk.CHUNK_NO,
+            chunk.CHUNK_TEXT,
+
+            VECTOR_DISTANCE(
+                chunk.EMBEDDING,
+
+                /*
+                 * 질문 float[]도 저장할 때와 동일한
+                 * Oracle FLOAT32 VECTOR TypeHandler로 바인딩한다.
+                 */
+                #{queryEmbedding,
+                  typeHandler=egovframework.workcare.common.mybatis.OracleFloat32VectorTypeHandler},
+
+                COSINE
+            ) AS DISTANCE_VALUE
+
+        FROM WC_PRECEDENT_CHUNK chunk
+
+        INNER JOIN WC_PRECEDENT precedent
+                ON precedent.PRECEDENT_ID =
+                   chunk.PRECEDENT_ID
+
+        WHERE chunk.EMBEDDING_STATUS = 'COMPLETED'
+          AND chunk.EMBEDDING IS NOT NULL
+    ),
+
+    /*
+     * 2단계: 판례별로 거리가 가장 가까운 청크부터
+     * 순위를 부여한다.
+     */
+    best_chunk_per_precedent AS (
+        SELECT
+            chunk_distance.*,
+
+            ROW_NUMBER() OVER (
+                PARTITION BY
+                    chunk_distance.PRECEDENT_ID
+
+                ORDER BY
+                    chunk_distance.DISTANCE_VALUE ASC,
+                    chunk_distance.CHUNK_NO ASC
+            ) AS CHUNK_RANK
+
+        FROM chunk_distance
+    )
+
+    /*
+     * 3단계: 각 판례의 1위 청크만 남긴 뒤
+     * 전체 거리순으로 정렬하여 상위 판례를 반환한다.
+     */
+    SELECT
+        ranked_result.PRECEDENT_ID,
+        ranked_result.CASE_NUMBER,
+        ranked_result.COURT_NAME,
+        ranked_result.RESULT_TYPE,
+        ranked_result.CASE_TYPE,
+        ranked_result.ACCIDENT_DISEASE_TYPE,
+        ranked_result.TITLE,
+        ranked_result.CHUNK_NO,
+        ranked_result.CHUNK_TEXT,
+        ranked_result.DISTANCE_VALUE
+
+    FROM (
+        SELECT
+            best_chunk.PRECEDENT_ID,
+            best_chunk.CASE_NUMBER,
+            best_chunk.COURT_NAME,
+            best_chunk.RESULT_TYPE,
+            best_chunk.CASE_TYPE,
+            best_chunk.ACCIDENT_DISEASE_TYPE,
+            best_chunk.TITLE,
+            best_chunk.CHUNK_NO,
+            best_chunk.CHUNK_TEXT,
+            best_chunk.DISTANCE_VALUE
+
+        FROM best_chunk_per_precedent best_chunk
+
+        WHERE best_chunk.CHUNK_RANK = 1
+
+        ORDER BY
+            best_chunk.DISTANCE_VALUE ASC,
+            best_chunk.PRECEDENT_ID ASC
+    ) ranked_result
+
+    /*
+     * 반환 건수는 Service가 고정된 작은 값으로 전달한다.
+     */
+    WHERE ROWNUM &lt;=
+          #{limit, jdbcType=INTEGER}
+
+</select>
+
+</mapper>
