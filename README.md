@@ -54,24 +54,34 @@
 | External API | 공공데이터포털 근로복지공단 Open API |
 | Development | Eclipse eGovFrame IDE, Docker Desktop, DBeaver |
 
-## 구조
+## 시스템 구조
+
+```mermaid
+flowchart LR
+    USER["사용자"] --> VUE["Vue 3 + Vite<br/>사용자 화면"]
+    VUE -->|"REST API / JSON"| CONTROLLER["eGovFrame Boot<br/>REST Controller"]
+    CONTROLLER --> SERVICE["Service<br/>업무 규칙·응답 변환"]
+
+    SERVICE --> PUBLIC_CLIENT["Public Data Client<br/>외부 응답 검증·변환"]
+    PUBLIC_CLIENT <-->|"HTTPS / XML"| PUBLIC_API["공공데이터포털<br/>근로복지공단 Open API"]
+
+    SERVICE --> MAPPER["MyBatis Mapper"]
+    MAPPER --> ORACLE[("Oracle AI Database 26ai<br/>판례·VECTOR")]
+
+    SERVICE --> OLLAMA_CLIENT["Ollama Client"]
+    OLLAMA_CLIENT <-->|"1024차원 임베딩"| OLLAMA["Ollama<br/>bge-m3"]
+```
+
+- 사용자 화면은 Vite 개발 프록시를 통해 eGovFrame Boot REST API와 통신합니다.
+- 공공데이터 조회는 전용 Client가 근로복지공단 Open API의 XML 응답과 결과 코드를 검증한 후 내부 DTO로 변환합니다.
+- 판례 수집 데이터와 임베딩 벡터는 MyBatis를 통해 Oracle에 저장하며, 질의 문장을 `bge-m3`로 임베딩한 뒤 Oracle Vector Search로 유사 판례를 검색합니다.
+
+저장소 구성:
 
 ```text
 workcare-ai-guide/
 ├── workcare-guide-api/   # eGovFrame Boot REST API
 └── workcare-guide-ui/    # Vue 사용자 화면
-```
-
-```text
-Vue 화면
-   ↓ REST API
-eGovFrame Controller
-   ↓
-Service / Public Data Client / MyBatis Mapper
-   ↓                         ↓
-공공데이터포털             Oracle 26ai
-                              ↓
-                         Ollama bge-m3
 ```
 
 ## 보안 설정
@@ -144,3 +154,15 @@ npm run dev
 - 검색 품질 평가 데이터셋과 정량 지표 구축
 - 운영용 인증·인가 및 요청량 제한 적용
 - 출처 링크와 면책 문구를 포함한 답변 검증 강화
+
+## 학습 성과
+
+- 전자정부프레임워크 Boot 환경에서 Controller–Service–Client·Mapper 계층을 분리하고 각 계층의 책임을 이해했습니다.
+- 외부 공공데이터의 HTTP 성공 여부만 확인하는 것으로는 부족하며, 응답 결과 코드와 XML 구조까지 검증해야 안정적으로 연계할 수 있다는 점을 학습했습니다.
+- 외부 API DTO와 사용자에게 제공하는 응답 DTO를 분리하여 외부 데이터 형식의 변경이 화면에 직접 전파되지 않도록 구성했습니다.
+- Oracle `MERGE`와 원문 해시를 활용해 반복 수집의 멱등성을 확보하고 변경된 판례만 다시 임베딩하는 처리 방식을 적용했습니다.
+- 판례 원문을 검색 가능한 단위로 청크화하고 `bge-m3` 임베딩과 Oracle Vector Search를 연결하며 벡터 기반 의미 검색 흐름을 경험했습니다.
+- 검색 결과와 근거 판례를 함께 제공하도록 구성하면서 AI 안내 기능에서는 정확성뿐 아니라 출처 제시와 책임 범위 안내도 중요하다는 점을 배웠습니다.
+- Docker 컨테이너의 쓰기 계층과 영속 볼륨의 차이를 이해하고 Oracle 데이터와 기동 파일을 복구하며 데이터 영속성을 점검했습니다.
+- DB 비밀번호와 공공데이터 인증키를 환경변수로 외부화하여 저장소에 비밀정보가 포함되지 않도록 관리했습니다.
+- Vue와 REST API를 분리하고 Vite 프록시를 적용하면서 프런트엔드와 백엔드의 독립적인 개발·실행 구조를 익혔습니다.
